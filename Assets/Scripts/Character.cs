@@ -9,10 +9,10 @@ public class Character : MonoBehaviour
 	private Camera _mainCamera;
 
 	// キャラクター初期設定(インスペクタから入力)
-	[Header("初期X位置(-4～4)")]
-	public int _initPos_X; 
-	[Header("初期Z位置(-4～4)")]
-	public int _initPos_Z; 
+	[SerializeField,Header("初期X位置(-4～4)")]
+	private int _initPos_X; 
+	[SerializeField,Header("初期Z位置(-4～4)")]
+	private int _initPos_Z; 
 	[Header("敵フラグ(ONで敵キャラとして扱う)")]
 	public bool _isEnemy; 
 	[Header("キャラクター名")]
@@ -65,14 +65,19 @@ public class Character : MonoBehaviour
 
 		// 初期位置に対応する座標へオブジェクトを移動させる
 		Vector3 pos = new Vector3();
-		pos.x = _initPos_X; // x座標：1ブロックのサイズが1(1.0f)なのでそのまま代入
-		pos.y = 1.0f; // y座標（固定）
-		pos.z = _initPos_Z; // z座標
-		transform.position = pos; // オブジェクトの座標を変更
+        // x座標：1ブロックのサイズが1(1.0f)なのでそのまま代入
+        pos.x = _initPos_X;
+        // y座標（固定）
+        pos.y = 1.0f;
+        // z座標
+        pos.z = _initPos_Z;
+        // オブジェクトの座標を変更
+        transform.position = pos; 
 
 		// オブジェクトを左右反転(ビルボードの処理にて一度反転してしまう為)
 		Vector2 scale = transform.localScale;
-		scale.x *= -1.0f; // X方向の大きさを正負入れ替える
+        // X方向の大きさを正負入れ替える
+        scale.x *= -1.0f;
 		transform.localScale = scale;
 
 		// その他変数初期化
@@ -83,11 +88,12 @@ public class Character : MonoBehaviour
 
 	void Update()
 	{
-		// ビルボード処理
-		// (スプライトオブジェクトをメインカメラの方向に向ける)
-		Vector3 cameraPos = _mainCamera.transform.position; // 現在のカメラ座標を取得
-		cameraPos.y = transform.position.y; // キャラが地面と垂直に立つようにする
-		transform.LookAt(cameraPos);
+        // ビルボード処理(スプライトオブジェクトをメインカメラの方向に向ける)
+        Vector3 cameraPos = _mainCamera.transform.position;
+        // 現在のカメラ座標を取得
+        cameraPos.y = transform.position.y;
+        // キャラが地面と垂直に立つようにする
+        transform.LookAt(cameraPos);
 	}
 
 	/// <summary>
@@ -99,9 +105,11 @@ public class Character : MonoBehaviour
 	{
 		// オブジェクトを移動させる
 		// 移動先座標への相対座標を取得
-		Vector3 movePos = Vector3.zero; // (0.0f, 0.0f, 0.0f)でVector3で初期化
-		movePos.x = targetXPos - _xPos; // x方向の相対距離
-		movePos.z = targetZPos - _zPos; // z方向の相対距離
+		Vector3 movePos = Vector3.zero;
+        // x方向の相対距離
+        movePos.x = targetXPos - _xPos;
+        // z方向の相対距離
+        movePos.z = targetZPos - _zPos;
 
 		// DoTweenのTweenを使用して徐々に位置が変化するアニメーションを行う
 		transform.DOMove(movePos, // 指定座標まで移動する
@@ -128,5 +136,8 @@ public class Character : MonoBehaviour
 				0.5f) // アニメーション時間(秒)
 			.SetEase(Ease.Linear) // イージング(変化の度合)を設定
 			.SetLoops(2, LoopType.Yoyo); // ループ回数・方式を指定
+
+		//effect
+		//sound
 	}
 }
