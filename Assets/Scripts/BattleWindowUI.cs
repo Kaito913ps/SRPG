@@ -45,13 +45,19 @@ public class BattleWindowUI : MonoBehaviour
         // アニメーション後のFillAmount
         float endAmount = (float)nowHP / charaData._maxHP;
         // HPゲージを徐々に減少させるアニメーション
-        DOTween.To( () => amount, (n) => amount = n, endAmount,1.0f).OnUpdate(() =>
-			{
-				_hpGageImage.fillAmount = amount;
-			});
+        // 変数を時間をかけて変化させる,変化させる変数を指定
+        DOTween.To(// 変数を時間をかけて変化させる
+                 () => amount, (n) => amount = n, // 変化させる変数を指定
+                 endAmount, // 変化先の数値
+                 1.0f) // アニメーション時間(秒)
+             .OnUpdate(() =>// アニメーション中毎フレーム実行される処理を指定
+             {
+                 // 最大値に対する現在HPの割合をゲージImageのfillAmountにセットする
+                 _hpGageImage.fillAmount = amount;
+             });
 
-		// HPText表示(現在値と最大値両方を表示)
-		_hpText.text = nowHP + "/" + charaData._maxHP;
+        // HPText表示(現在値と最大値両方を表示)
+        _hpText.text = nowHP + "/" + charaData._maxHP;
         // ダメージ量Text表示
         if (damageValue >= 0)
             // ダメージ発生時
