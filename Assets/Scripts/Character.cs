@@ -39,6 +39,7 @@ public class Character : MonoBehaviour
 	public int _nowHP; 
 	// 各種状態異常
 	public bool _isSkillLock;
+
 	public bool _isDefBreak; 
 
 	// キャラクター属性定義(列挙型)

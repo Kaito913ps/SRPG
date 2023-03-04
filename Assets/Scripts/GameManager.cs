@@ -6,21 +6,33 @@ using DG.Tweening;
 
 public class GameManager : MonoBehaviour
 {
-	private MapManager _mapManager; 
-	private CharactersManager _charactersManager;
-	private GUIManager _guiManager;
+    // マップマネージャ
+    private MapManager _mapManager;
+    // 全キャラクター管理クラス
+    private CharactersManager _charactersManager;
+    // GUIマネージャ
+    private GUIManager _guiManager;
 
-	// 進行管理変数
-	private Character _selectingChara; 
-	private SkillDefine.Skill _selectingSkill; 
-	private List<MapBlock> _reachableBlocks;
-	private List<MapBlock> _attackableBlocks; 
-	private bool _isGameSet; 
+    // 進行管理変数
+    // 選択中のキャラクター(誰も選択していないならfalse)
+    private Character _selectingChara;
+    // 選択中の特技(通常攻撃時はNONE固定)
+    private SkillDefine.Skill _selectingSkill;
+    // 選択中のキャラクターの移動可能ブロックリスト
+    private List<MapBlock> _reachableBlocks;
+    // 選択中のキャラクターの攻撃可能ブロックリスト
+    private List<MapBlock> _attackableBlocks;
+    // ゲーム終了フラグ(決着がついた後ならtrue)
+    private bool _isGameSet;
 
-	// 行動キャンセル処理用変数
-	private int _charaStartPos_X;
-	private int _charaStartPos_Z; 
-	private MapBlock _attackBlock; 
+    // 行動キャンセル処理用変数
+    // 選択キャラクターの移動前の位置(X方向)
+    private int _charaStartPos_X;
+    // 選択キャラクターの移動前の位置(Z方向)
+    private int _charaStartPos_Z;
+
+    // 選択キャラクターの攻撃先のブロック
+    private MapBlock _attackBlock; 
 
 	// ターン進行モード一覧
 	private enum Phase
@@ -33,7 +45,8 @@ public class GameManager : MonoBehaviour
 		EnemyTurn_Start,    // 敵のターン：開始時
 		EnemyTurn_Result    // 敵のターン：行動結果表示中
 	}
-	private Phase nowPhase; // 現在の進行モード
+    // 現在の進行モード
+    private Phase nowPhase;
 
 	void Start()
 	{
@@ -68,7 +81,8 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void GetMapBlockByTapPos()
 	{
-		GameObject targetObject = null; // タップ対象のオブジェクト
+        // タップ対象のオブジェクト
+        GameObject targetObject = null; 
 
 		// タップした方向にカメラからRayを飛ばす
 		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -82,7 +96,8 @@ public class GameManager : MonoBehaviour
 		// 対象オブジェクト(マップブロック)が存在する場合の処理
 		if (targetObject != null)
 		{
-			SelectBlock(targetObject.GetComponent<MapBlock>());
+            // ブロック選択時処理
+            SelectBlock(targetObject.GetComponent<MapBlock>());
 		}
 	}
 
@@ -97,18 +112,22 @@ public class GameManager : MonoBehaviour
 		{
 			// 自分のターン：開始時
 			case Phase.MyTurn_Start:
-				_mapManager.AllSelectionModeClear();
-				targetBlock.SetSelectionMode(MapBlock.Highlight.Select);
+                // 全ブロックの選択状態を解除
+                _mapManager.AllSelectionModeClear();
+                // ブロックを選択状態の表示にする
+                targetBlock.SetSelectionMode(MapBlock.Highlight.Select);
 
 				// 選択した位置に居るキャラクターのデータを取得
 				var charaData =	_charactersManager.GetCharacterDataByPos(targetBlock._xPos, targetBlock._zPos);
 				if (charaData != null)
 				{
-					_selectingChara = charaData;
+                    // キャラクターが存在する選択中のキャラクター情報に記憶
+                    _selectingChara = charaData;
 					// 選択キャラクターの現在位置を記憶
 					_charaStartPos_X = _selectingChara._xPos;
 					_charaStartPos_Z = _selectingChara._zPos;
-					_guiManager.ShowStatusWindow(_selectingChara);
+                    // キャラクターのステータスをUIに表示する
+                    _guiManager.ShowStatusWindow(_selectingChara);
 
 					// 移動可能な場所リストを取得する
 					_reachableBlocks = _mapManager.SearchReachableBlocks(charaData._xPos, charaData._zPos);
@@ -117,12 +136,15 @@ public class GameManager : MonoBehaviour
 					foreach (MapBlock mapBlock in _reachableBlocks)
 						mapBlock.SetSelectionMode(MapBlock.Highlight.Reachable);
 
-					_guiManager.ShowMoveCancelButton();
-					ChangePhase(Phase.MyTurn_Moving);
+                    // 移動キャンセルボタン表示
+                    _guiManager.ShowMoveCancelButton();
+                    // 進行モードを進める：移動先選択中
+                    ChangePhase(Phase.MyTurn_Moving);
 				}
 				else
 				{
-					ClearSelectingChara();
+                    // キャラクターが存在しない選択中のキャラクター情報を初期化する
+                    ClearSelectingChara();
 				}
 				break;
 
@@ -138,22 +160,31 @@ public class GameManager : MonoBehaviour
 				// 選択ブロックが移動可能な場所リスト内にある場合、移動処理を開始
 				if (_reachableBlocks.Contains(targetBlock))
 				{
-					_selectingChara.MovePosition(targetBlock._xPos, targetBlock._zPos);
+                    // 選択中のキャラクターを移動させる
+                    _selectingChara.MovePosition(targetBlock._xPos, targetBlock._zPos);
 
-					_reachableBlocks.Clear();
+                    // 移動可能な場所リストを初期化する
+                    _reachableBlocks.Clear();
 
-					_mapManager.AllSelectionModeClear();
+                    // 全ブロックの選択状態を解除
+                    _mapManager.AllSelectionModeClear();
 
-					_guiManager.HideMoveCancelButton();
+                    // 移動キャンセルボタン非表示
+                    _guiManager.HideMoveCancelButton();
 
-					// 指定秒数経過後に処理を実行する(DoTween)
-					DOVirtual.DelayedCall( 0.5f,() =>
-						{
-							_guiManager.ShowCommandButtons(_selectingChara);
-							ChangePhase(Phase.MyTurn_Command);
-						}
-					);
-				}
+                    // 指定秒数経過後に処理を実行する(DoTween)
+                    DOVirtual.DelayedCall(
+                        0.5f, // 遅延時間(秒)
+                        () =>
+                        {
+							// 遅延実行する内容
+							// コマンドボタンを表示する
+                            _guiManager.ShowCommandButtons(_selectingChara);
+                            // 進行モードを進める：移動後のコマンド選択中
+                            ChangePhase(Phase.MyTurn_Command);
+                        }
+                    );
+                }
 				break;
 
 			// 自分のターン：移動後のコマンド選択中
@@ -161,15 +192,21 @@ public class GameManager : MonoBehaviour
 				// 攻撃範囲のブロックを選択した時、行動するかの確認ボタンを表示する
 				if (_attackableBlocks.Contains(targetBlock))
 				{
-					_attackBlock = targetBlock;
+                    // 攻撃先のブロック情報を記憶
+                    _attackBlock = targetBlock;
+					// 行動決定・キャンセルボタンを表示する
 					_guiManager.ShowDecideButtons();
 
-					_attackableBlocks.Clear();
-					_mapManager.AllSelectionModeClear();
+                    // 攻撃可能な場所リストを初期化する
+                    _attackableBlocks.Clear();
+                    // 全ブロックの選択状態を解除
+                    _mapManager.AllSelectionModeClear();
 
-					_attackBlock.SetSelectionMode(MapBlock.Highlight.Attackable);
+                    // 攻撃先のブロックを強調表示する
+                    _attackBlock.SetSelectionMode(MapBlock.Highlight.Attackable);
 
-					ChangePhase(Phase.MyTurn_Targeting);
+                    // 進行モードを進める：攻撃の対象を選択中
+                    ChangePhase(Phase.MyTurn_Targeting);
 				}
 				break;
 		}
@@ -180,8 +217,10 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void ClearSelectingChara()
 	{
-		_selectingChara = null;
-		_guiManager.HideStatusWindow();
+        // 選択中のキャラクターを初期化する
+        _selectingChara = null;
+        // 攻撃範囲を取得して表示する
+        _guiManager.HideStatusWindow();
 	}
 
 	/// <summary>
@@ -189,16 +228,20 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	public void AttackCommand()
 	{
-		_selectingSkill = SkillDefine.Skill._None;
-		GetAttackableBlocks();
+        // 特技の選択をオフにする
+        _selectingSkill = SkillDefine.Skill._None;
+        // 攻撃範囲を取得して表示する
+        GetAttackableBlocks();
 	}
 	/// <summary>
 	/// 特技コマンドボタン処理
 	/// </summary>
 	public void SkillCommand()
 	{
-		_selectingSkill = _selectingChara._skill;
-		GetAttackableBlocks();
+        // 特技の選択をオフにする
+        _selectingSkill = _selectingChara._skill;
+        // 攻撃範囲を取得して表示する
+        GetAttackableBlocks();
 	}
 	/// <summary>
 	/// 攻撃・特技コマンド選択後に対象ブロックを表示する処理
@@ -224,8 +267,10 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	public void StandbyCommand()
 	{
-		_guiManager.HideCommandButtons();
-		ChangePhase(Phase.EnemyTurn_Start);
+        // コマンドボタンを非表示にする
+        _guiManager.HideCommandButtons();
+        // 進行モードを進める(敵のターンへ)
+        ChangePhase(Phase.EnemyTurn_Start);
 	}
 
 	/// <summary>
@@ -233,20 +278,28 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	public void ActionDecideButton()
 	{
-		_guiManager.HideDecideButtons();
-		_attackBlock.SetSelectionMode(MapBlock.Highlight.Off);
+        // 行動決定・キャンセルボタンを非表示にする
+        _guiManager.HideDecideButtons();
+        // 攻撃先のブロックの強調表示を解除する
+        _attackBlock.SetSelectionMode(MapBlock.Highlight.Off);
 
-		var targetChara = _charactersManager.GetCharacterDataByPos(_attackBlock._xPos, _attackBlock._zPos);
+        // 攻撃対象の位置に居るキャラクターのデータを取得
+        var targetChara = _charactersManager.GetCharacterDataByPos(_attackBlock._xPos, _attackBlock._zPos);
 		if (targetChara != null)
 		{
-			CharaAttack(_selectingChara, targetChara);
+            // 攻撃対象のキャラクターが存在する
+            // キャラクター攻撃処理
+            CharaAttack(_selectingChara, targetChara);
 
-			ChangePhase(Phase.MyTurn_Result);
+            // 進行モードを進める(行動結果表示へ)
+            ChangePhase(Phase.MyTurn_Result);
 			return;
 		}
 		else
 		{
-			ChangePhase(Phase.EnemyTurn_Start);
+            // 攻撃対象が存在しない
+            // 進行モードを進める(敵のターンへ)
+            ChangePhase(Phase.EnemyTurn_Start);
 		}
 	}
 	/// <summary>
@@ -254,13 +307,19 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	public void ActionCancelButton()
 	{
-		_guiManager.HideDecideButtons();
-		_attackBlock.SetSelectionMode(MapBlock.Highlight.Off);
+        // 行動決定・キャンセルボタンを非表示にする
+        _guiManager.HideDecideButtons();
+        // 攻撃先のブロックの強調表示を解除する
+        _attackBlock.SetSelectionMode(MapBlock.Highlight.Off);
 
-		_selectingChara.MovePosition(_charaStartPos_X, _charaStartPos_Z);
-		ClearSelectingChara();
+        // キャラクターを移動前の位置に戻す
+        _selectingChara.MovePosition(_charaStartPos_X, _charaStartPos_Z);
 
-		ChangePhase(Phase.MyTurn_Start, true);
+        // キャラクターの選択を解除する
+        ClearSelectingChara();
+
+        // 進行モードを戻す(ターンの最初へ)
+        ChangePhase(Phase.MyTurn_Start, true);
 	}
 
 	/// <summary>
@@ -291,30 +350,37 @@ public class GameManager : MonoBehaviour
 		// 選択した特技によるダメージ値補正および効果処理
 		switch (_selectingSkill)
 		{
-			case SkillDefine.Skill.Critical: // 会心の一撃
-				
-				damageValue *= 2;
-				
-				attackChara._isSkillLock = true;
+            // 会心の一撃
+            case SkillDefine.Skill.Critical:
+                // ダメージ２倍
+                damageValue *= 2;
+                // 特技使用不可状態にする
+                attackChara._isSkillLock = true;
 				break;
 
-			case SkillDefine.Skill.DefBreak: // シールド破壊
-				
-				damageValue = 0;
-				
-				defenseChara._isDefBreak = true;
+            // シールド破壊
+            case SkillDefine.Skill.DefBreak:
+                // ダメージ０固定
+                damageValue = 0;
+                // 防御力0化デバフをセット
+                defenseChara._isDefBreak = true;
 				break;
 
-			case SkillDefine.Skill.Heal: // ヒール
-				damageValue = (int)(attackPoint * -0.5f);
+            // ヒール
+            case SkillDefine.Skill.Heal:
+                // 回復
+                // (回復量は攻撃力の半分。負数にする事でダメージ計算時に回復する)
+                damageValue = (int)(attackPoint * -0.5f);
 				break;
 
-			case SkillDefine.Skill.FireBall: // ファイアボール
-				
-				damageValue /= 2;
+            // ファイアボール
+            case SkillDefine.Skill.FireBall:
+                // ダメージ半減
+                damageValue /= 2;
 				break;
 
-			default: // 特技無しor通常攻撃時
+            // 特技無しor通常攻撃時
+            default:
 				break;
 		}
 
@@ -323,36 +389,48 @@ public class GameManager : MonoBehaviour
 		if (_selectingSkill != SkillDefine.Skill.Heal &&
 			_selectingSkill != SkillDefine.Skill.FireBall)
 			attackChara.AttackAnimation(defenseChara);
-		// アニメーション内で攻撃が当たったくらいのタイミングでSEを再生
-		DOVirtual.DelayedCall(0.45f, () =>
-			{
-				GetComponent<AudioSource>().Play();
-			}
-		);
+        // アニメーション内で攻撃が当たったくらいのタイミングでSEを再生
+        DOVirtual.DelayedCall(
+            0.45f, // 遅延時間(秒)
+            () =>
+            {// 遅延実行する内容
+             // AudioSourceを再生
+                GetComponent<AudioSource>().Play();
+            }
+        );
 
-		_guiManager._battleWindowUI.ShowWindow(defenseChara, damageValue);
+        // バトル結果表示ウィンドウの表示設定
+        _guiManager._battleWindowUI.ShowWindow(defenseChara, damageValue);
 
-		defenseChara._nowHP -= damageValue;
-		defenseChara._nowHP = Mathf.Clamp(defenseChara._nowHP, 0, defenseChara._maxHP);
+        // ダメージ量分防御側のHPを減少
+        defenseChara._nowHP -= damageValue;
+        // HPが0～最大値の範囲に収まるよう補正
+        defenseChara._nowHP = Mathf.Clamp(defenseChara._nowHP, 0, defenseChara._maxHP);
 
 		// HP0になったキャラクターを削除する
 		if (defenseChara._nowHP == 0)
 			_charactersManager.DeleteCharaData(defenseChara);
 
-		_selectingSkill = SkillDefine.Skill._None;
+        // 特技の選択状態を解除する
+        _selectingSkill = SkillDefine.Skill._None;
 
-		// ターン切り替え処理(遅延実行)
-		DOVirtual.DelayedCall( 2.0f,() =>
-			{
-				_guiManager._battleWindowUI.HideWindow();
-				
-				if (nowPhase == Phase.MyTurn_Result) 
-					ChangePhase(Phase.EnemyTurn_Start);
-				else if (nowPhase == Phase.EnemyTurn_Result)
-					ChangePhase(Phase.MyTurn_Start);
-			}
-		);
-	}
+        // ターン切り替え処理(遅延実行)
+        DOVirtual.DelayedCall(
+            2.0f, // 遅延時間(秒)
+            () =>
+            {// 遅延実行する内容
+             // ウィンドウを非表示化
+                _guiManager._battleWindowUI.HideWindow();
+                // ターンを切り替える
+                // 敵のターンへ
+                if (nowPhase == Phase.MyTurn_Result) 
+                    ChangePhase(Phase.EnemyTurn_Start);
+                // 自分のターンへ
+                else if (nowPhase == Phase.EnemyTurn_Result) 
+                    ChangePhase(Phase.MyTurn_Start);
+            }
+        );
+    }
 
 
 	/// <summary>
@@ -366,8 +444,8 @@ public class GameManager : MonoBehaviour
 		if (_isGameSet)
 			return;
 
-		
-		nowPhase = newPhase;
+        // モード変更を保存
+        nowPhase = newPhase;
 
 		// 特定のモードに切り替わったタイミングで行う処理
 		switch (nowPhase)
@@ -375,8 +453,9 @@ public class GameManager : MonoBehaviour
 
 			// 自分のターン：開始時
 			case Phase.MyTurn_Start:
-				
-				if (!noLogos)
+
+                // 自分のターン開始時のロゴを表示
+                if (!noLogos)
 					_guiManager.ShowLogo_PlayerTurn();
 				break;
 
@@ -386,13 +465,17 @@ public class GameManager : MonoBehaviour
 				if (!noLogos)
 					_guiManager.ShowLogo_EnemyTurn();
 
-				
-				DOVirtual.DelayedCall( 1.0f, () =>
-					{
-						EnemyCommand();
-					});
-				break;
-		}
+                // 敵の行動を開始する処理
+                // (ロゴ表示後に開始したいので遅延処理にする)
+                DOVirtual.DelayedCall(
+                    1.0f, // 遅延時間(秒)
+                    () =>
+                    {// 遅延実行する内容
+                        EnemyCommand();
+                    }
+                );
+                break;
+        }
 	}
 
 	/// <summary>
@@ -401,8 +484,8 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	private void EnemyCommand()
 	{
-		
-		_selectingSkill = SkillDefine.Skill._None;
+        // 特技の選択をオフにする
+        _selectingSkill = SkillDefine.Skill._None;
 
 		// 生存中の敵キャラクターのリストを作成する
 		var enemyCharas = new List<Character>(); 
@@ -413,35 +496,45 @@ public class GameManager : MonoBehaviour
 				enemyCharas.Add(charaData);
 		}
 
-		
-		var actionPlan = TargetFinder.GetRandomActionPlan(_mapManager, _charactersManager, enemyCharas);
+        // 攻撃可能なキャラクター・位置の組み合わせの内１つをランダムに取得
+        var actionPlan = TargetFinder.GetRandomActionPlan(_mapManager, _charactersManager, enemyCharas);
 		// 組み合わせのデータが存在すれば攻撃開始
 		if (actionPlan != null)
 		{
-			actionPlan._charaData.MovePosition(actionPlan._toMoveBlock._xPos, actionPlan._toMoveBlock._zPos);
-			
-			DOVirtual.DelayedCall( 1.0f,() =>
-				{
-					CharaAttack(actionPlan._charaData, actionPlan._toAttackChara);
-				}
-			);
+            // 敵キャラクター移動処理
+            actionPlan._charaData.MovePosition(actionPlan._toMoveBlock._xPos, actionPlan._toMoveBlock._zPos);
 
-			ChangePhase(Phase.EnemyTurn_Result);
+            // 敵キャラクター攻撃処理
+            // (移動後のタイミングで攻撃開始するよう遅延実行)
+            DOVirtual.DelayedCall(
+                1.0f, // 遅延時間(秒)
+                () =>
+                {// 遅延実行する内容
+                    CharaAttack(actionPlan._charaData, actionPlan._toAttackChara);
+                }
+            );
+
+            // 進行モードを進める(行動結果表示へ)
+            ChangePhase(Phase.EnemyTurn_Result);
 			return;
 		}
 
-		int randId = Random.Range(0, enemyCharas.Count);
-		Character targetEnemy = enemyCharas[randId];
+        // 攻撃可能な相手が見つからなかった場合移動させる１体をランダムに選ぶ
+        int randId = Random.Range(0, enemyCharas.Count);
+        // 行動対象の敵データ
+        Character targetEnemy = enemyCharas[randId];
 
 		_reachableBlocks = _mapManager.SearchReachableBlocks(targetEnemy._xPos, targetEnemy._zPos);
 		randId = Random.Range(0, _reachableBlocks.Count);
 		MapBlock targetBlock = _reachableBlocks[randId]; 
 		targetEnemy.MovePosition(targetBlock._xPos, targetBlock._zPos);
 
-		_reachableBlocks.Clear();
+        // 移動場所・攻撃場所リストをクリアする
+        _reachableBlocks.Clear();
 		_attackableBlocks.Clear();
-	
-		ChangePhase(Phase.MyTurn_Start);
+
+        // 進行モードを進める(自分のターンへ)
+        ChangePhase(Phase.MyTurn_Start);
 	}
 
 	/// <summary>
@@ -450,13 +543,18 @@ public class GameManager : MonoBehaviour
 	/// <returns>ダメージ倍率</returns>
 	private float GetDamageRatioByAttribute(Character attackChara, Character defenseChara)
 	{
-		// 各ダメージ倍率を定義
-		const float RATIO_NORMAL = 1.0f; 
-		const float RATIO_GOOD = 1.2f; // 相性が良い(攻撃側が有利)
-		const float RATIO_BAD = 0.8f; // 相性が悪い(攻撃側が不利)
+        // 各ダメージ倍率を定義
+        // 通常
+        const float RATIO_NORMAL = 1.0f;
+        // 相性が良い(攻撃側が有利)
+        const float RATIO_GOOD = 1.2f;
+        // 相性が悪い(攻撃側が不利)
+        const float RATIO_BAD = 0.8f;
 
-		Character.Attribute atkAttr = attackChara._attribute; // 攻撃側の属性
-		Character.Attribute defAttr = defenseChara._attribute; // 防御側の属性
+        // 攻撃側の属性
+        Character.Attribute atkAttr = attackChara._attribute;
+        // 防御側の属性
+        Character.Attribute defAttr = defenseChara._attribute; 
 
 		// 相性決定処理
 		// 属性ごとに良相性→悪相性の順でチェックし、どちらにも当てはまらないなら通常倍率を返す
@@ -504,15 +602,16 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	public void CancelMoving()
 	{
-		_mapManager.AllSelectionModeClear();
-
-		_reachableBlocks.Clear();
-
-		ClearSelectingChara();
-		
-		_guiManager.HideMoveCancelButton();
-		
-		ChangePhase(Phase.MyTurn_Start, true);
+        // 全ブロックの選択状態を解除
+        _mapManager.AllSelectionModeClear();
+        // 移動可能な場所リストを初期化する
+        _reachableBlocks.Clear();
+        // 選択中のキャラクター情報を初期化する
+        ClearSelectingChara();
+        // 移動やめるボタン非表示
+        _guiManager.HideMoveCancelButton();
+        // フェーズを元に戻す(ロゴを表示しない設定)
+        ChangePhase(Phase.MyTurn_Start, true);
 	}
 
 	/// <summary>
@@ -520,17 +619,20 @@ public class GameManager : MonoBehaviour
 	/// </summary>
 	public void CheckGameSet()
 	{
-		bool isWin = true;
-		
-		bool isLose = true;
+        // プレイヤー勝利フラグ(生きている敵がいるならOffになる)
+        bool isWin = true;
+        // プレイヤー敗北フラグ(生きている味方がいるならOffになる)
+        bool isLose = true;
 
 		// それぞれ生きている敵・味方が存在するかをチェック
 		foreach (var charaData in _charactersManager._characters)
 		{
-			if (charaData._isEnemy) // 敵が居るので勝利フラグOff
+            // 敵が居るので勝利フラグOff
+            if (charaData._isEnemy)
 				isWin = false;
-			else // 味方が居るので敗北フラグOff
-				isLose = false;
+            // 味方が居るので敗北フラグOff
+            else
+                isLose = false;
 		}
 
 		// 勝利または敗北のフラグが立ったままならゲームを終了する
@@ -543,18 +645,24 @@ public class GameManager : MonoBehaviour
 			// ロゴUIとフェードインを表示する(遅延実行)
 			DOVirtual.DelayedCall(1.5f, () =>
 				{
-					if (isWin) // ゲームクリア演出
+                    // ゲームクリア演出
+                    if (isWin) 
 						_guiManager.ShowLogo_GameClear();
-					else // ゲームオーバー演出
-						_guiManager.ShowLogo_GameOver();
+                    // ゲームオーバー演出
+                    else
+                        _guiManager.ShowLogo_GameOver();
 
-					_reachableBlocks.Clear();
-					_mapManager.AllSelectionModeClear();
-					_guiManager.StartFadeIn();
+                    // 移動可能な場所リストを初期化する
+                    _reachableBlocks.Clear();
+                    // 全ブロックの選択状態を解除
+                    _mapManager.AllSelectionModeClear();
+                    // フェードイン開始
+                    _guiManager.StartFadeIn();
 				}
 			);
 
-			DOVirtual.DelayedCall(7.0f, () =>
+            // Gameシーンの再読み込み(遅延実行)
+            DOVirtual.DelayedCall(7.0f, () =>
 				{
 					SceneManager.LoadScene("Enhance");
 				}
