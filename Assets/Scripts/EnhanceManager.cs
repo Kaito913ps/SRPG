@@ -10,14 +10,18 @@ public class EnhanceManager : MonoBehaviour
 	private Data _data;
 
 	// UIボタン
-	public List<Button> _enhanceButtons; 
-	public Button _goGameButton; 
+	[SerializeField,Tooltip("ステータス上昇ボタン")]
+    private List<Button> _enhanceButtons;
+	[SerializeField,Tooltip("もう一度プレイボタン")]
+	private Button _goGameButton; 
 
 	void Start()
 	{
-		_data = GameObject.Find("DataManager").GetComponent<Data>();
+        // データマネージャからデータ管理クラスを取得
+        _data = GameObject.Find("DataManager").GetComponent<Data>();
 
-		_goGameButton.interactable = false;
+        // いずれかを強化するまでは「もう一度プレイ」ボタンを押せないようにする
+        _goGameButton.interactable = false;
 	}
 
 	/// <summary>
@@ -28,8 +32,9 @@ public class EnhanceManager : MonoBehaviour
 	{
 		// 強化処理
 		_data._addHP += 2;
-
-		EnhanceComplete(); 
+		//sound
+        // 強化完了時処理
+        EnhanceComplete(); 
 	}
 	/// <summary>
 	/// (ステータス上昇ボタン)
@@ -39,8 +44,9 @@ public class EnhanceManager : MonoBehaviour
 	{
 		// 強化処理
 		_data._addAtk += 1;
-
-		EnhanceComplete(); 
+		//sound
+        // 強化完了時処理
+        EnhanceComplete(); 
 	}
 	/// <summary>
 	/// (ステータス上昇ボタン)
@@ -50,8 +56,9 @@ public class EnhanceManager : MonoBehaviour
 	{
 		// 強化処理
 		_data._addDef += 1;
-
-		EnhanceComplete();
+        //sound
+        // 強化完了時処理
+        EnhanceComplete();
 	}
 	/// <summary>
 	/// プレイヤー強化完了時の共通処理
@@ -75,6 +82,7 @@ public class EnhanceManager : MonoBehaviour
 	/// </summary>
 	public void GoGameScene()
 	{
-		SceneManager.LoadScene("Game");
+        //sound
+        SceneManager.LoadScene("Game");
 	}
 }

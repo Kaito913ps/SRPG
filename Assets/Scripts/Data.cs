@@ -4,14 +4,17 @@ using UnityEngine;
 
 public class Data : MonoBehaviour
 {
-	
-	[HideInInspector]
+    // シングルトン管理用変数
+    [HideInInspector]
 	public static bool _instance = false;
 
-	// プレイヤー強化データ
-	public int _addHP; 
-	public int _addAtk;
-	public int _addDef;
+    // プレイヤー強化データ
+    // 最大HP上昇量
+    public int _addHP;
+    // 攻撃力上昇量
+    public int _addAtk;
+    // 防御力上昇量
+    public int _addDef;
 
 	// データのキー定義
 	public const string Key_AddHP = "Key_AddHP";
@@ -43,6 +46,7 @@ public class Data : MonoBehaviour
 		PlayerPrefs.SetInt(Key_AddHP, _addHP);
 		PlayerPrefs.SetInt(Key_AddAtk, _addAtk);
 		PlayerPrefs.SetInt(Key_AddDef, _addDef);
-		PlayerPrefs.Save(); 
+        // 変更を保存
+        PlayerPrefs.Save(); 
 	}
 }

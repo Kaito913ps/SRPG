@@ -4,18 +4,16 @@ using UnityEngine;
 using DG.Tweening;
 public class CharactersManager : MonoBehaviour
 {
-	
-	public Transform _charactersParent;
+    // 全キャラクターオブジェクトの親オブジェクトTransform
+    public Transform _charactersParent;
 
 	// 全キャラクターデータ
 	[HideInInspector]
-	public List<Character> _characters;
+	public List<Character> _characters = new List<Character>();
 
 	void Start()
 	{
-		// マップ上の全キャラクターデータを取得
 		// (charactersParent以下の全Characterコンポーネントを検索しリストに格納)
-		_characters = new List<Character>();
 		_charactersParent.GetComponentsInChildren(_characters);
 
 		// データマネージャからデータ管理クラスを取得
@@ -28,11 +26,15 @@ public class CharactersManager : MonoBehaviour
 			if (charaData._isEnemy)
 				continue;
 
-			// キャラクターの能力を上昇させる
-			charaData._nowHP += data._addHP; // 最大HP
-			charaData._maxHP += data._addHP; // 現在HP
-			charaData._atk += data._addAtk; // 攻撃力
-			charaData._def += data._addDef; // 防御力
+            // キャラクターの能力を上昇させる
+            //最大HP
+            charaData._nowHP += data._addHP;
+            // 現在HP
+            charaData._maxHP += data._addHP;
+            // 攻撃力
+            charaData._atk += data._addAtk;
+            // 防御力
+            charaData._def += data._addDef; 
 		}
 	}
 
@@ -44,14 +46,14 @@ public class CharactersManager : MonoBehaviour
 	/// <returns>対象のキャラクターデータ</returns>
 	public Character GetCharacterDataByPos(int xPos, int zPos)
 	{
-		// 検索処理
-		// (foreachでマップ内の全キャラクターデータ１体１体ずつに同じ処理を行う)
+		// 検索処理(foreachでマップ内の全キャラクターデータ１体１体ずつに同じ処理を行う)
 		foreach (Character charaData in _characters)
 		{
 			// キャラクターの位置が指定された位置と一致しているかチェック
 			if ((charaData._xPos == xPos) &&(charaData._zPos == zPos)) 	
 			{
-				return charaData; 
+                // 位置が一致している
+                return charaData; 
 			}
 		}
 
@@ -65,12 +67,18 @@ public class CharactersManager : MonoBehaviour
 	/// <param name="charaData">対象キャラデータ</param>
 	public void DeleteCharaData(Character charaData)
 	{
-		_characters.Remove(charaData);
-		DOVirtual.DelayedCall( 0.5f,() =>
-			{
-				Destroy(charaData.gameObject);
-			}
-		);
-		GetComponent<GameManager>().CheckGameSet();
+        // リストからデータを削除
+        _characters.Remove(charaData);
+        // オブジェクト削除(遅延実行)
+        DOVirtual.DelayedCall(
+            0.5f, // 遅延時間(秒)
+            () =>
+            {// 遅延実行する内容
+                Destroy(charaData.gameObject);
+            }
+        );
+		//パーティークル
+        // ゲーム終了判定を行う
+        GetComponent<GameManager>().CheckGameSet();
 	}
 }
