@@ -1,39 +1,58 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI; // UIコンポーネントを扱うのに必要
+using UnityEngine.UI; 
 using DG.Tweening;
 
 public class GUIManager : MonoBehaviour
 {
-	// ステータスウィンドウUI
-	public GameObject _statusWindow; 
-	public Text _nameText; 
-	public Image _attributeIcon; 
-	public Image _hpGageImage;
-	public Text _hpText;
-	public Text _atkText; 
-	public Text _defText; 
+    // ステータスウィンドウUI
+    // ステータスウィンドウオブジェクト
+    public GameObject _statusWindow;
+    // 名前Text
+    public Text _nameText;
+    // 属性アイコンImage
+    public Image _attributeIcon;
+    // HPゲージImage
+    public Image _hpGageImage;
+    // HPText
+    public Text _hpText;
+    // 攻撃力Text
+    public Text _atkText;
+    // 防御力Text
+    public Text _defText;
 
-	public Sprite attr_Water; // 水属性アイコン画像
-	public Sprite attr_Fire;  // 火属性アイコン画像
-	public Sprite attr_Wind;  // 風属性アイコン画像
-	public Sprite attr_Soil;  // 土属性アイコン画像
+    // 属性アイコン画像
+    // 水属性アイコン画像
+    public Sprite attr_Water;
+    // 火属性アイコン画像
+    public Sprite attr_Fire;
+    // 風属性アイコン画像
+    public Sprite attr_Wind;
+    // 土属性アイコン画像
+    public Sprite attr_Soil;
 
-	// キャラクターのコマンドボタン
-	public GameObject _commandButtons; 
-	public Button _skillCommandButton; 
-	public Text _skillText; // 選択キャラクターの特技の説明Text
+    // キャラクターのコマンドボタン
+    // 全コマンドボタンの親オブジェクト
+    public GameObject _commandButtons;
+    // 特技コマンドのButton
+    public Button _skillCommandButton;
+    // 選択キャラクターの特技の説明Text
+    public Text _skillText; 
 
 
 	// バトル結果表示UI処理クラス
 	public BattleWindowUI _battleWindowUI;
 
-	// 各種ロゴ画像
-	public Image _playerTurnImage; 
-	public Image _enemyTurnImage; 
-	public Image _gameClearImage;
-	public Image _gameOverImage; 
+    // 各種ロゴ画像
+    // プレイヤーターン開始時画像
+    public Image _playerTurnImage;
+    // 敵ターン開始時画像
+    public Image _enemyTurnImage;
+    // ゲームクリア画像
+    public Image _gameClearImage;
+    // ゲームオーバー画像
+    public Image _gameOverImage; 
 
 	// フェードイン用画像
 	public Image _fadeImage;
@@ -46,11 +65,15 @@ public class GUIManager : MonoBehaviour
 
 	void Start()
 	{
-		// UI初期化
-		HideStatusWindow();
-		HideCommandButtons(); 
-		HideMoveCancelButton(); 
-		HideDecideButtons();
+        // UI初期化
+        // ステータスウィンドウを隠す
+        HideStatusWindow();
+        // コマンドボタンを隠す
+        HideCommandButtons();
+        // 移動キャンセルボタンを隠す
+        HideMoveCancelButton();
+        // 行動決定・キャンセルボタンを隠す
+        HideDecideButtons();
 	}
 
 	/// <summary>
@@ -59,9 +82,11 @@ public class GUIManager : MonoBehaviour
 	/// <param name="charaData">表示キャラクターデータ</param>
 	public void ShowStatusWindow(Character charaData)
 	{
-		_statusWindow.SetActive(true);
+        // オブジェクトアクティブ化
+        _statusWindow.SetActive(true);
 
-		_nameText.text = charaData._charaName;
+        // 名前Text表示
+        _nameText.text = charaData._charaName;
 
 		// 属性Image表示
 		switch (charaData._attribute)
@@ -85,13 +110,16 @@ public class GUIManager : MonoBehaviour
 		float ratio = (float)charaData._nowHP / charaData._maxHP;
 		_hpGageImage.fillAmount = ratio;
 
-		_hpText.text = charaData._nowHP + "/" + charaData._maxHP;
-		_atkText.text = charaData._atk.ToString();
+        // HPText表示(現在値と最大値両方を表示)
+        _hpText.text = charaData._nowHP + "/" + charaData._maxHP;
+        // 攻撃力Text表示(intからstringに変換)
+        _atkText.text = charaData._atk.ToString();
 		// 防御力Text表示(intからstringに変換)
 		if (!charaData._isDefBreak)
 			_defText.text = charaData._def.ToString();
-		else // (防御力0化している場合)
-			_defText.text = "<color=red>0</color>";
+        // (防御力0化している場合)
+        else
+            _defText.text = "<color=red>0</color>";
 	}
 	/// <summary>
 	/// ステータスウィンドウを隠す
@@ -110,10 +138,13 @@ public class GUIManager : MonoBehaviour
 	{
 		_commandButtons.SetActive(true);
 
-		// 選択キャラクターの特技をTextに表示する
-		SkillDefine.Skill skill = selectChara._skill; 
-		string skillName = SkillDefine.dic_SkillName[skill]; 
-		string skillInfo = SkillDefine.dic_SkillInfo[skill]; 
+        // 選択キャラクターの特技をTextに表示する
+        // 選択キャラクターの特技
+        SkillDefine.Skill skill = selectChara._skill;
+        // 特技の名前
+        string skillName = SkillDefine.dic_SkillName[skill];
+        // 特技の説明文
+        string skillInfo = SkillDefine.dic_SkillInfo[skill]; 
 		// リッチテキストでサイズを変更しながら文字を表示
 		_skillText.text = "<size=40>" + skillName + "</size>\n" + skillInfo;
 
@@ -138,16 +169,24 @@ public class GUIManager : MonoBehaviour
 	public void ShowLogo_PlayerTurn()
 	{
 		// 徐々に表示→非表示を行うアニメーション(Tween)
-		_playerTurnImage.DOFade(1.0f,1.0f).SetEase(Ease.OutCubic).SetLoops(2, LoopType.Yoyo); 
-	}
+		_playerTurnImage
+            .DOFade(1.0f, // 指定数値まで画像のalpha値を変化
+                1.0f) // アニメーション時間(秒)
+            .SetEase(Ease.OutCubic) // イージング(変化の度合)を設定
+            .SetLoops(2, LoopType.Yoyo); // ループ回数・方式を指定
+    }
 	/// <summary>
 	/// 敵のターンに切り替わった時のロゴ画像を表示する
 	/// </summary>
 	public void ShowLogo_EnemyTurn()
 	{
 		// 徐々に表示→非表示を行うアニメーション(Tween)
-		_enemyTurnImage.DOFade(1.0f,1.0f).SetEase(Ease.OutCubic).SetLoops(2, LoopType.Yoyo);
-	}
+		_enemyTurnImage
+			.DOFade(1.0f, // 指定数値まで画像のalpha値を変化
+                1.0f) // アニメーション時間(秒)
+            .SetEase(Ease.OutCubic) // イージング(変化の度合)を設定
+            .SetLoops(2, LoopType.Yoyo); // ループ回数・方式を指定
+    }
 
 	/// <summary>
 	/// 移動キャンセルボタンを表示する
@@ -170,18 +209,29 @@ public class GUIManager : MonoBehaviour
 	public void ShowLogo_GameClear()
 	{
 		// 徐々に表示するアニメーション
-		_gameClearImage.DOFade(1.0f,1.0f).SetEase(Ease.OutCubic);
+		_gameClearImage
+			.DOFade(1.0f, // 指定数値まで画像のalpha値を変化
+                1.0f) // アニメーション時間(秒)
+            .SetEase(Ease.OutCubic); // イージング(変化の度合)を設定
 
-		// 拡大→縮小を行うアニメーション
-		_gameClearImage.transform.DOScale(1.5f,1.0f).SetEase(Ease.OutCubic).SetLoops(2, LoopType.Yoyo);
-	}
+        // 拡大→縮小を行うアニメーション
+        _gameClearImage.transform
+			.DOScale(1.5f, // 指定数値まで画像のalpha値を変化
+                1.0f) // アニメーション時間(秒)
+            .SetEase(Ease.OutCubic) // イージング(変化の度合)を設定
+            .SetLoops(2, LoopType.Yoyo); // ループ回数・方式を指定
+    }
 	/// <summary>
 	/// ゲームオーバーのロゴ画像を表示する
 	/// </summary>
 	public void ShowLogo_GameOver()
 	{
-		// 徐々に表示するアニメーション
-		_gameOverImage.DOFade(1.0f,1.0f).SetEase(Ease.OutCubic);}
+        // 徐々に表示するアニメーション
+        _gameOverImage
+			.DOFade(1.0f, // 指定数値まで画像のalpha値を変化
+                1.0f) // アニメーション時間(秒)
+            .SetEase(Ease.OutCubic); // イージング(変化の度合)を設定
+    }
 
 	/// <summary>
 	/// フェードインを開始する
@@ -189,8 +239,10 @@ public class GUIManager : MonoBehaviour
 	public void StartFadeIn()
 	{
 		_fadeImage
-			.DOFade(1.0f,5.5f).SetEase(Ease.Linear);
-	}
+            .DOFade(1.0f, // 指定数値まで画像のalpha値を変化
+                5.5f) // アニメーション時間(秒)
+            .SetEase(Ease.Linear); // イージング(変化の度合)を設定
+    }
 
 	/// <summary>
 	/// 行動決定・キャンセルボタンを表示する
@@ -199,6 +251,7 @@ public class GUIManager : MonoBehaviour
 	{
 		_decideButtons.SetActive(true);
 	}
+
 	/// <summary>
 	/// 行動決定・キャンセルボタンを非表示にする
 	/// </summary>
