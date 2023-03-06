@@ -23,18 +23,20 @@ public class MapBlock : MonoBehaviour
 	}
 
 	// ブロックデータ
-	[HideInInspector] 
+	[HideInInspector,Tooltip("X方向の位置")] 
 	public int _xPos; 
-	[HideInInspector]
+	[HideInInspector,Tooltip("Z方向の位置")]
 	public int _zPos; 
 	[Header("通行可能フラグ(trueなら通行可能である)")]
 	public bool _passable;
 
 	void Start()
 	{
-		_selectionBlockObj = transform.GetChild(0).gameObject;
+        // 強調表示オブジェクトを取得
+        _selectionBlockObj = transform.GetChild(0).gameObject;
 
-		SetSelectionMode(Highlight.Off);
+        // 初期状態では強調表示をしない
+        SetSelectionMode(Highlight.Off);
 	}
 
 	/// <summary>

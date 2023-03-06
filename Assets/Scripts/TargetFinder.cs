@@ -9,9 +9,12 @@ public static class TargetFinder
 	// (行動する敵キャラクター、移動先の位置、攻撃相手のキャラクターの３データを１まとめに扱う)
 	public class ActionPlan
 	{
-		public Character _charaData; 
-		public MapBlock _toMoveBlock; 
-		public Character _toAttackChara; 
+        // 行動する敵キャラクター
+        public Character _charaData;
+        // 移動先の位置
+        public MapBlock _toMoveBlock;
+        // 攻撃相手のキャラクター
+        public Character _toAttackChara; 
 	}
 
 	/// <summary>
@@ -61,10 +64,11 @@ public static class TargetFinder
 			}
 		}
 
-		
-		if (actionPlans.Count > 0)
+        // 検索終了後、行動プランが１つでもあるならその内の１つをランダムに返す
+        if (actionPlans.Count > 0)
 			return actionPlans[Random.Range(0, actionPlans.Count)];
-		else
-			return null;
+        // 行動プランが無いならnullを返す
+        else
+            return null;
 	}
 }
