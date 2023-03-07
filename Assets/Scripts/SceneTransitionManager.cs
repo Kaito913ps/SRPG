@@ -17,4 +17,16 @@ public class SceneTransitionManager : MonoBehaviour
     {
         SceneManager.LoadScene(_sceneName);
     }
+
+    /// <summary>
+    /// ゲームプレイ終了
+    /// </summary>
+    public void OnExit()
+    {
+        #if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+        #else
+            Application.Quit();
+        #endif
+    }
 }
